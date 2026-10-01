@@ -1,0 +1,21 @@
+{% extends "page.html" %}
+
+{% block main %}
+<main class="profile-shell">
+  <header class="profile-header">
+    <div class="eyebrow"><span></span> My workspaces</div>
+  </header>
+
+  {% if error_message %}<div class="alert alert-danger">{{ error_message }}</div>{% endif %}
+
+  <form enctype="multipart/form-data" id="spawn_form" action="{{ url }}" method="post" role="form">
+    {{ spawner_options_form | safe }}
+    <div class="launch-bar">
+      <div><span class="status-dot"></span><strong>Cluster available</strong><small>Capacity updates automatically</small></div>
+      <button type="submit" class="primary-action launch-button"><span class="action-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5c2.1-2.1 4.6-2.5 5.8-2.6-.1 1.2-.5 3.7-2.6 5.8l-5.2 5.2-3.2-3.2 5.2-5.2Z"/><path d="m9.3 10.7-3.7.5-2 2 4.2.8m4.7-.1-.5 3.7-2 2-.8-4.2M15 8l2 2M6.5 17.5l-3 3m4-1-2 2"/></svg>Launch my workspace</span><b>→</b></button>
+    </div>
+  </form>
+</main>
+<script src="{{ static_url('custom/profiles.js') }}" defer></script>
+{% endblock %}
+

@@ -1,0 +1,23 @@
+{% extends "templates/page.html" %}
+
+{% block stylesheet %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ static_url('custom/portal.css') }}">
+{% endblock %}
+
+{% block nav_bar %}
+<nav class="nebula-nav" aria-label="Main navigation">
+  <a class="nebula-brand" href="{{ base_url }}" aria-label="BNP Paribas Developer Workspaces">
+    <img class="brand-logo" src="{{ static_url('custom/bnp-paribas-logo.svg') }}" alt="">
+    <span class="brand-copy"><strong>BNP PARIBAS</strong><small>Developer Workspaces</small></span>
+  </a>
+  {% if user %}
+  <div class="nav-user">
+    <span class="status-dot"></span>
+    <span class="user-name">{{ user.name }}</span>
+    <a class="nav-link" href="{{ logout_url }}">Sign out</a>
+  </div>
+  {% endif %}
+</nav>
+{% endblock %}
+

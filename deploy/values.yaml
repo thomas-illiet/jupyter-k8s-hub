@@ -1,0 +1,151 @@
+hub:
+  image:
+    name: registry.example.com/jupyter/hub
+    tag: "0.1.0"
+  extraEnv:
+    OIDC_CLIENT_ID:
+      valueFrom:
+        secretKeyRef: {name: jupyterhub-oidc, key: client-id}
+    OIDC_CLIENT_SECRET:
+      valueFrom:
+        secretKeyRef: {name: jupyterhub-oidc, key: client-secret}
+    OIDC_AUTHORIZE_URL:
+      valueFrom:
+        secretKeyRef: {name: jupyterhub-oidc, key: authorize-url}
+    OIDC_TOKEN_URL:
+      valueFrom:
+        secretKeyRef: {name: jupyterhub-oidc, key: token-url}
+    OIDC_USERDATA_URL:
+      valueFrom:
+        secretKeyRef: {name: jupyterhub-oidc, key: userdata-url}
+    OIDC_LOGOUT_URL:
+      valueFrom:
+        secretKeyRef: {name: jupyterhub-oidc, key: logout-url}
+    LDAP_SERVER_ADDRESS:
+      valueFrom:
+        secretKeyRef: {name: jupyterhub-ldap, key: server-address}
+    LDAP_BIND_DN_TEMPLATE:
+      valueFrom:
+        secretKeyRef: {name: jupyterhub-ldap, key: bind-dn-template}
+  extraConfig:
+    00-theme: |
+      c.JupyterHub.template_paths = ['/usr/local/share/jupyterhub/custom_templates']
+      c.JupyterHub.template_vars = {
+        'product_name': 'BNP Paribas Developer Workspaces',
+        'product_tagline': 'A secure development environment, ready in seconds.',
+        'support_url': 'mailto:platform@example.com',
+      }
+    10-auth: |
+      import os
+      from hybrid_authenticator import HybridAuthenticator
+
+      c.JupyterHub.authenticator_class = HybridAuthenticator
+      c.HybridAuthenticator.client_id = os.environ['OIDC_CLIENT_ID']
+      c.HybridAuthenticator.client_secret = os.environ['OIDC_CLIENT_SECRET']
+      c.HybridAuthenticator.authorize_url = os.environ['OIDC_AUTHORIZE_URL']
+      c.HybridAuthenticator.token_url = os.environ['OIDC_TOKEN_URL']
+      c.HybridAuthenticator.userdata_url = os.environ['OIDC_USERDATA_URL']
+      c.HybridAuthenticator.oauth_callback_url = 'https://jupyter.example.com/hub/oauth_callback'
+      c.HybridAuthenticator.username_claim = 'preferred_username'
+      c.HybridAuthenticator.scope = ['openid', 'profile', 'email']
+      c.HybridAuthenticator.allow_all = True
+      c.JupyterHub.logout_redirect_url = os.environ.get('OIDC_LOGOUT_URL', '/')
+
+      c.LDAPAuthenticator.server_address = os.environ['LDAP_SERVER_ADDRESS']
+      c.LDAPAuthenticator.server_port = 636
+      c.LDAPAuthenticator.use_ssl = True
+      c.LDAPAuthenticator.bind_dn_template = [os.environ['LDAP_BIND_DN_TEMPLATE']]
+      c.LDAPAuthenticator.escape_userdn = True
+      c.LDAPAuthenticator.allow_all = True
+
+proxy:
+  service:
+    type: ClusterIP
+
+ingress:
+  enabled: true
+  hosts:
+    - jupyter.example.com
+  tls:
+    - hosts: [jupyter.example.com]
+      secretName: jupyterhub-tls
+
+singleuser:
+  defaultUrl: /vscode/
+  startTimeout: 600
+  uid: 1000
+  fsGid: 100
+  storage:
+    type: dynamic
+    capacity: 20Gi
+    homeMountPath: /home/jovyan
+  extraEnv:
+    CODE_WORKINGDIR: /home/jovyan/work
+  networkPolicy:
+    enabled: true
+  profileList:
+    - display_name: "Python Essentials"
+      slug: python
+      description: "A fast environment for Python, APIs, and automation. 2 CPU · 4 GB RAM"
+      default: true
+      kubespawner_override:
+        image: registry.example.com/jupyter/vscode-python:0.1.0
+        cpu_guarantee: 1
+        cpu_limit: 2
+        mem_guarantee: 2G
+        mem_limit: 4G
+        environment:
+          WORKSPACE_PROFILE: python
+    - display_name: "Data Science"
+      slug: datascience
+      description: "Pandas, SciPy, scikit-learn, and visualization. 4 CPU · 8 GB RAM"
+      kubespawner_override:
+        image: registry.example.com/jupyter/vscode-datascience:0.1.0
+        cpu_guarantee: 2
+        cpu_limit: 4
+        mem_guarantee: 4G
+        mem_limit: 8G
+        environment:
+          WORKSPACE_PROFILE: datascience
+    - display_name: "Web & Node.js"
+      slug: node
+      description: "Node.js, TypeScript, and pnpm for web applications. 2 CPU · 4 GB RAM"
+      kubespawner_override:
+        image: registry.example.com/jupyter/vscode-node:0.1.0
+        cpu_guarantee: 1
+        cpu_limit: 2
+        mem_guarantee: 2G
+        mem_limit: 4G
+        environment:
+          WORKSPACE_PROFILE: node
+    - display_name: "Java Enterprise"
+      slug: java
+      description: "OpenJDK 21 and Maven for enterprise services. 4 CPU · 8 GB RAM"
+      kubespawner_override:
+        image: registry.example.com/jupyter/vscode-java:0.1.0
+        cpu_guarantee: 2
+        cpu_limit: 4
+        mem_guarantee: 4G
+        mem_limit: 8G
+        environment:
+          WORKSPACE_PROFILE: java
+    - display_name: "AI / GPU"
+      slug: cuda
+      description: "CUDA, cuDNN, and PyTorch for AI workloads. 8 CPU · 16 GB RAM · 1 GPU"
+      kubespawner_override:
+        image: registry.example.com/jupyter/vscode-cuda:0.1.0
+        cpu_guarantee: 4
+        cpu_limit: 8
+        mem_guarantee: 8G
+        mem_limit: 16G
+        extra_resource_limits:
+          nvidia.com/gpu: "1"
+        environment:
+          WORKSPACE_PROFILE: cuda
+
+cull:
+  enabled: true
+  timeout: 3600
+  every: 300
+  users: true
+
