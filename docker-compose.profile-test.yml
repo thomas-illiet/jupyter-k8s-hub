@@ -1,0 +1,29 @@
+services:
+  proxy:
+    image: quay.io/jupyterhub/configurable-http-proxy:5.0.0
+    command:
+      - --ip=0.0.0.0
+      - --port=8000
+      - --api-ip=0.0.0.0
+      - --api-port=8001
+      - --default-target=http://hub-profile-test:8081
+    ports:
+      - "8000:8000"
+    environment:
+      CONFIGPROXY_AUTH_TOKEN: profile-test-token
+    restart: unless-stopped
+
+  hub-profile-test:
+    build:
+      context: .
+      dockerfile: images/hub/Dockerfile
+    command: ["jupyterhub", "-f", "/srv/jupyterhub/test/jupyterhub_config.py"]
+    volumes:
+      - ./dev/profile-test:/srv/jupyterhub/test:ro
+    environment:
+      JUPYTERHUB_CRYPT_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      CONFIGPROXY_AUTH_TOKEN: profile-test-token
+    depends_on:
+      - proxy
+    restart: unless-stopped
+

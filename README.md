@@ -1,6 +1,6 @@
-# JupyterHub VS Code Workspaces
+# Code Station
 
-A JupyterHub portal for launching isolated VS Code workspaces in Kubernetes from multiple images.
+Code Station is a JupyterHub portal for launching isolated VS Code workspaces in Kubernetes from multiple images.
 
 ## Included features
 
@@ -88,6 +88,24 @@ Add an entry to `singleuser.profileList` in `deploy/values.yaml`. The `display_n
 ## Local interface development
 
 Open [preview/login.html](preview/login.html) to preview the authentication page and [preview/index.html](preview/index.html) to preview the five profiles. These static pages reproduce the interface without requiring a Kubernetes cluster.
+
+To test the real JupyterHub templates and KubeSpawner-style radio markup:
+
+```powershell
+docker compose -f docker-compose.profile-test.yml up --build
+```
+
+Open `http://localhost:8000/hub/login`, sign in with any username and the password `test`, then open `http://localhost:8000/hub/spawn`. Launching a profile keeps the real spawn-progress page visible for 30 seconds before failing intentionally. Error previews are available at `/hub/theme-preview/400`, `/hub/theme-preview/403`, `/hub/missing`, and `/hub/theme-preview/500`. This compose file is a UI test harness only; it does not start a workspace container or connect to Kubernetes.
+
+## Error theme previews
+
+| 400 | 403 |
+| --- | --- |
+| ![Code Station error 400](docs/screenshots/error-400.png) | ![Code Station error 403](docs/screenshots/error-403.png) |
+
+| 404 | 500 |
+| --- | --- |
+| ![Code Station error 404](docs/screenshots/error-404.png) | ![Code Station error 500](docs/screenshots/error-500.png) |
 
 ## Security
 

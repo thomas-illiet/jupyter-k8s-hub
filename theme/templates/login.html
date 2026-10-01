@@ -21,7 +21,12 @@
         <div class="card-icon" aria-hidden="true">›_</div>
         <div><h2>Authentication</h2><div class="eyebrow compact"><span></span> Employee access</div></div>
       </div>
-      {% if login_error %}<div class="login-error" role="alert">Invalid username or password.</div>{% endif %}
+      {% if login_error %}
+      <div class="login-error" role="alert" aria-live="assertive">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/></svg>
+        <div><strong>Unable to sign in</strong><span>Check your username and password, then try again.</span></div>
+      </div>
+      {% endif %}
       <form class="ldap-form" action="{{ login_url }}?next={{ next }}" method="post">
         <input type="hidden" name="_xsrf" value="{{ xsrf }}">
         <label for="username">Username</label>
@@ -38,7 +43,7 @@
   </section>
 </main>
 <footer class="portal-footer">
-  <span>BNP Paribas · IT Group · JupyterHub</span>
+  <span>BNP Paribas · IT Group · Code Station</span>
   <a href="{{ support_url | default('#') }}">Need help?</a>
 </footer>
 <script src="{{ static_url('custom/auth.js') }}" defer></script>

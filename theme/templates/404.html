@@ -1,0 +1,15 @@
+{% extends "page.html" %}
+
+{% block login_widget %}{% endblock %}
+
+{% block main %}
+<main class="lost-station-shell">
+  <section class="lost-station" aria-labelledby="lost-station-title">
+    <div class="lost-code" aria-hidden="true">404</div>
+    <div class="station-line" aria-hidden="true"><span></span></div>
+    <p class="lost-label">Destination not found</p>
+    <h1 id="lost-station-title">This stop isn’t on the line.</h1>
+    <p class="lost-description">The address may have changed,<br>or the workspace may no longer be available.</p>
+  </section>
+</main>
+{% endblock %}

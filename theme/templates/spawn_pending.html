@@ -1,0 +1,94 @@
+{% extends "page.html" %}
+
+{% block main %}
+<div class="container spawn-pending-shell">
+  <div class="spawn-pending-copy text-center">
+    {% block message %}
+    <p class="spawn-title">Your workspace is starting</p>
+    <p>You will be redirected automatically when it is ready.</p>
+    {% endblock message %}
+    <div class="progress">
+      <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <span class="sr-only"><span id="sr-progress">0%</span> Complete</span>
+      </div>
+    </div>
+    <p id="progress-message"></p>
+  </div>
+
+  <details id="progress-details" open>
+    <summary><span class="terminal-prompt" aria-hidden="true">›_</span><span>Event log</span><span class="terminal-live"><i></i> Live</span></summary>
+    <div class="terminal-window">
+      <div class="terminal-toolbar" aria-hidden="true">
+        <span class="terminal-dots"><i></i><i></i><i></i></span>
+        <span>workspace-events</span>
+        <span id="terminal-event-count">0 events</span>
+      </div>
+      <div id="progress-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+    </div>
+  </details>
+</div>
+{% endblock main %}
+
+{% block script %}
+{{ super() }}
+<script type="text/javascript">
+  require(["jquery"], function($) {
+    var startedAt = Date.now();
+    var eventCount = 0;
+    var evtSource = new EventSource("{{ progress_url }}");
+    var progressMessage = $("#progress-message");
+    var progressBar = $("#progress-bar");
+    var srProgress = $("#sr-progress");
+    var progressLog = $("#progress-log");
+    var eventCountLabel = $("#terminal-event-count");
+
+    function appendTerminalEvent(htmlMessage, state) {
+      var receivedAt = new Date();
+      var elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+      var clock = receivedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+      var row = $("<div>").addClass("progress-log-event").addClass(state || "info");
+      $("<time>").attr("datetime", receivedAt.toISOString()).attr("title", receivedAt.toLocaleString()).text(clock).appendTo(row);
+      $("<span>").addClass("terminal-elapsed").text("+" + elapsed + "s").appendTo(row);
+      $("<span>").addClass("terminal-chevron").attr("aria-hidden", "true").text("›").appendTo(row);
+      $("<span>").addClass("terminal-message").html(htmlMessage).appendTo(row);
+      progressLog.append(row);
+      eventCount += 1;
+      eventCountLabel.text(eventCount + (eventCount === 1 ? " event" : " events"));
+      progressLog.scrollTop(progressLog.prop("scrollHeight"));
+    }
+
+    evtSource.onmessage = function(e) {
+      var evt = JSON.parse(e.data);
+      if (evt.progress !== undefined) {
+        var progText = evt.progress.toString();
+        progressBar.attr("aria-valuenow", progText);
+        srProgress.text(progText + "%");
+        progressBar.css("width", progText + "%");
+      }
+
+      var htmlMessage;
+      if (evt.html_message !== undefined) {
+        progressMessage.html(evt.html_message);
+        htmlMessage = evt.html_message;
+      } else if (evt.message !== undefined) {
+        progressMessage.text(evt.message);
+        htmlMessage = progressMessage.html();
+      }
+      if (htmlMessage) appendTerminalEvent(htmlMessage, evt.failed ? "state-error" : evt.ready ? "state-success" : "state-info");
+
+      if (evt.ready) {
+        evtSource.close();
+        window.location.reload();
+      }
+      if (evt.failed) {
+        evtSource.close();
+        progressBar.addClass("progress-bar-danger");
+        $("#progress-details").prop("open", true).addClass("has-error");
+        $(".terminal-live").html("<i></i> Failed");
+      }
+    };
+
+    window._jupyterhub_page_loaded = true;
+  });
+</script>
+{% endblock script %}

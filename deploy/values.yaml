@@ -31,7 +31,7 @@ hub:
     00-theme: |
       c.JupyterHub.template_paths = ['/usr/local/share/jupyterhub/custom_templates']
       c.JupyterHub.template_vars = {
-        'product_name': 'BNP Paribas Developer Workspaces',
+        'product_name': 'BNP Paribas Code Station',
         'product_tagline': 'A secure development environment, ready in seconds.',
         'support_url': 'mailto:platform@example.com',
       }
