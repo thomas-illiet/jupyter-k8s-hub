@@ -21,6 +21,9 @@ hub:
     OIDC_LOGOUT_URL:
       valueFrom:
         secretKeyRef: {name: jupyterhub-oidc, key: logout-url}
+    JUPYTERHUB_ADMIN_USERS:
+      valueFrom:
+        secretKeyRef: {name: jupyterhub-oidc, key: admin-users, optional: true}
     LDAP_SERVER_ADDRESS:
       valueFrom:
         secretKeyRef: {name: jupyterhub-ldap, key: server-address}
@@ -49,6 +52,11 @@ hub:
       c.HybridAuthenticator.username_claim = 'preferred_username'
       c.HybridAuthenticator.scope = ['openid', 'profile', 'email']
       c.HybridAuthenticator.allow_all = True
+      c.Authenticator.admin_users = {
+        username.strip()
+        for username in os.environ.get('JUPYTERHUB_ADMIN_USERS', '').split(',')
+        if username.strip()
+      }
       c.JupyterHub.logout_redirect_url = os.environ.get('OIDC_LOGOUT_URL', '/')
 
       c.LDAPAuthenticator.server_address = os.environ['LDAP_SERVER_ADDRESS']

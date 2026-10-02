@@ -27,6 +27,9 @@
   <div class="nav-user">
     <span class="status-dot"></span>
     <span class="user-name">{{ user.name }}</span>
+    {% if user.admin %}
+    <a class="nav-link nav-link-admin" href="{{ base_url }}admin">Admin panel</a>
+    {% endif %}
     <a class="nav-link" href="{{ logout_url }}">Sign out</a>
   </div>
   {% endif %}

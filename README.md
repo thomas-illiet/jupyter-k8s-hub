@@ -55,8 +55,11 @@ kubectl -n jupyterhub create secret generic jupyterhub-oidc `
   --from-literal=authorize-url='https://id.example.com/application/o/authorize/' `
   --from-literal=token-url='https://id.example.com/application/o/token/' `
   --from-literal=userdata-url='https://id.example.com/application/o/userinfo/' `
-  --from-literal=logout-url='https://id.example.com/application/o/end-session/'
+  --from-literal=logout-url='https://id.example.com/application/o/end-session/' `
+  --from-literal=admin-users='firstname.lastname'
 ```
+
+`admin-users` is an optional comma-separated list of JupyterHub usernames. Authenticated users in this list see an **Admin panel** link next to **Sign out** and can access JupyterHub's built-in administration page. Use the exact normalized username returned by OIDC or LDAP.
 
 Create the LDAP secret as well. Always use LDAPS in production:
 
@@ -95,7 +98,7 @@ To test the real JupyterHub templates and KubeSpawner-style radio markup:
 docker compose -f docker-compose.profile-test.yml up --build
 ```
 
-Open `http://localhost:8000/hub/login`, sign in with any username and the password `test`, then open `http://localhost:8000/hub/spawn`. Launching a profile keeps the real spawn-progress page visible for 30 seconds before failing intentionally. Error previews are available at `/hub/theme-preview/400`, `/hub/theme-preview/403`, `/hub/missing`, and `/hub/theme-preview/500`. This compose file is a UI test harness only; it does not start a workspace container or connect to Kubernetes.
+Open `http://localhost:8000/hub/login`, sign in with any username and the password `test`, then open `http://localhost:8000/hub/spawn`. Use the username `admin` to preview the administrator link and JupyterHub admin panel. Launching a profile keeps the real spawn-progress page visible for 30 seconds before failing intentionally. Error previews are available at `/hub/theme-preview/400`, `/hub/theme-preview/403`, `/hub/missing`, and `/hub/theme-preview/500`. This compose file is a UI test harness only; it does not start a workspace container or connect to Kubernetes.
 
 ## Error theme previews
 

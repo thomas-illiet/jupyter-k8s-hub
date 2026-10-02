@@ -68,6 +68,7 @@ c.ConfigurableHTTPProxy.should_start = False
 c.ConfigurableHTTPProxy.api_url = "http://proxy:8001"
 c.JupyterHub.authenticator_class = DummyAuthenticator
 c.Authenticator.allow_all = True
+c.Authenticator.admin_users = {"admin"}
 c.DummyAuthenticator.password = "test"
 c.JupyterHub.spawner_class = ProfilePreviewSpawner
 c.JupyterHub.extra_handlers = [
